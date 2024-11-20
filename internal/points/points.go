@@ -19,7 +19,7 @@ func TotalPoints(receipt receipt.Receipt) int {
 		}
 	}
 
-	if totalReceipt, err := strconv.ParseFloat(receipt.Total, 64); err == nil {
+	if totalReceipt, err := strconv.ParseFloat(string(receipt.Total), 64); err == nil {
 		// 50 points if the total is a round dollar amount with no cents.
 		if math.Mod(totalReceipt, 1) == 0 {
 			total += 50
@@ -34,14 +34,15 @@ func TotalPoints(receipt receipt.Receipt) int {
 	total += len(receipt.Items) / 2 * 5
 
 	for _, item := range receipt.Items {
-		if len(strings.TrimSpace(item.ShortDescription))%3 == 0 {
-			if itemPrice, err := strconv.ParseFloat(item.Price, 64); err == nil {
+		if len(strings.TrimSpace(string(item.ShortDescription)))%3 == 0 {
+			if itemPrice, err := strconv.ParseFloat(string(item.Price), 64); err == nil {
 				total += int(math.Ceil(itemPrice * 0.2))
 			}
 		}
 	}
 
-	receiptTime, _ := time.Parse("2006-01-02 15:04", receipt.PurchaseDate+" "+receipt.PurchaseTime)
+	receiptTime, _ := time.Parse("2006-01-02 15:04",
+		string(receipt.PurchaseDate)+" "+string(receipt.PurchaseTime))
 	// 6 points if day in purchase date is odd
 	if receiptTime.Day()%2 == 1 {
 		total += 6
