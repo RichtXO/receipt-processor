@@ -9,7 +9,7 @@ Content-Type: application/json
 > {%
     client.test("Request executed successfully", function() {
         client.assert(response.status === 200, "Response status is not 200");
-        client.assert(response.body.id === "674d7acc-9eb7-52b9-85c3-4384c200bcbe", "Response ID is correct")
+        client.assert(jsonPath(response.body, "id") ===  "674d7acc-9eb7-52b9-85c3-4384c200bcbe", "Response ID is correct")
     });
 %}
 
@@ -22,7 +22,7 @@ Content-Type: application/json
 > {%
     client.test("Request executed successfully", function() {
         client.assert(response.status === 200, "Response status is not 200");
-        client.assert(response.body.id === "0ca29a3d-884b-5b30-83f6-afaba112382d", "Response ID is correct")
+        client.assert(jsonPath(response.body, "id") === "0ca29a3d-884b-5b30-83f6-afaba112382d", "Response ID is correct")
     });
 %}
 
@@ -33,7 +33,7 @@ Accept: application/json
 > {%
     client.test("Request executed successfully", function() {
         client.assert(response.status === 200, "Response status is not 200");
-        client.assert(response.body.points === 28, "Response points is correct")
+        client.assert(jsonPath(response.body, "points") === 28, "Response points is not correct")
     });
 %}
 
@@ -43,7 +43,7 @@ GET {{rootURL}}/receipts/0ca29a3d-884b-5b30-83f6-afaba112382d/points
 > {%
     client.test("Request executed successfully", function() {
         client.assert(response.status === 200, "Response status is not 200");
-        client.assert(response.body.points === 109, "Response points is correct")
+        client.assert(jsonPath(response.body, "points") === 109, "Response points is not correct")
     });
 %}
 
