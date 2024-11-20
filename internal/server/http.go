@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"receipt-processor/internal/points"
 	"receipt-processor/internal/receipt"
+	"sync"
 )
 
-// httpServer in-memory storage
-type httpServer struct {
-	Receipts *receipt.Receipts
-}
+// MEMORY in-memory storage
+var MEMORY = sync.Map{}
 
-func (handler *httpServer) processReceipt(w http.ResponseWriter, r *http.Request) {
+// processReceipt Post Method of
+func processReceipt(w http.ResponseWriter, r *http.Request) {
 	invalid := func() {
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"error\": \"Invalid Parameter\"}"))
@@ -27,9 +27,16 @@ func (handler *httpServer) processReceipt(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var input receipt.Receipt
+	// Extract json from body
+	input := receipt.Receipt{}
 	err = json.Unmarshal(body, &input)
 	if err != nil {
+		invalid()
+		return
+	}
+
+	// Checking if receipt is valid
+	if !input.Verify() {
 		invalid()
 		return
 	}
@@ -42,17 +49,16 @@ func (handler *httpServer) processReceipt(w http.ResponseWriter, r *http.Request
 		id.String(),
 	}
 
-	// Adding UUID and receipt
-	if !handler.Receipts.Add(id, input) {
-		invalid()
-		return
-	}
+	// Adding UUID and total point
+	MEMORY.Store(id, points.TotalPoints(input))
 
+	// Writing output for client
 	output, err := json.Marshal(response)
 	_, _ = w.Write(output)
 }
 
-func (handler *httpServer) getPoints(w http.ResponseWriter, r *http.Request) {
+// getPoints Get Method
+func getPoints(w http.ResponseWriter, r *http.Request) {
 	invalid := func() {
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write([]byte("No receipt found for ID provided!"))
@@ -65,7 +71,7 @@ func (handler *httpServer) getPoints(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	found, exists := handler.Receipts.Get(uuidParsed)
+	found, exists := MEMORY.Load(uuidParsed)
 	if !exists {
 		invalid()
 		return
@@ -74,7 +80,7 @@ func (handler *httpServer) getPoints(w http.ResponseWriter, r *http.Request) {
 	response := struct {
 		Points int `json:"points"`
 	}{
-		points.TotalPoints(found),
+		found.(int),
 	}
 
 	output, err := json.Marshal(response)
@@ -87,12 +93,9 @@ func (handler *httpServer) getPoints(w http.ResponseWriter, r *http.Request) {
 
 // NewHTTPServer Initializing Server
 func NewHTTPServer(addr string) *http.Server {
-	server := &httpServer{
-		Receipts: &receipt.Receipts{},
-	}
 	router := mux.NewRouter()
-	router.HandleFunc("/receipts/process", server.processReceipt).Methods("POST")
-	router.HandleFunc("/receipts/{id}/points", server.getPoints).Methods("GET")
+	router.HandleFunc("/receipts/process", processReceipt).Methods("POST")
+	router.HandleFunc("/receipts/{id}/points", getPoints).Methods("GET")
 	return &http.Server{
 		Addr:    addr,
 		Handler: router,
