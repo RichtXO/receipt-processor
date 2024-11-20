@@ -15,16 +15,6 @@ type httpServer struct {
 	Receipts *receipt.Receipts
 }
 
-// ProcessReceiptResponse represents process receipt endpoint
-type ProcessReceiptResponse struct {
-	ID string `json:"id"`
-}
-
-// GetPointsResponse represents get points endpoint
-type GetPointsResponse struct {
-	Points int `json:"points"`
-}
-
 func (handler *httpServer) processReceipt(w http.ResponseWriter, r *http.Request) {
 	invalid := func() {
 		w.WriteHeader(http.StatusBadRequest)
