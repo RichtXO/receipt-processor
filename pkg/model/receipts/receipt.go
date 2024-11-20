@@ -1,4 +1,5 @@
-package model
+// Package receipts provides json datalayer
+package receipts
 
 // Receipt represents Receipt Structure
 type Receipt struct {
