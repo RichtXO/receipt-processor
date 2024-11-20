@@ -1,4 +1,4 @@
-package main
+package model
 
 // ProcessReceiptResponse represents process receipt endpoint
 type ProcessReceiptResponse struct {

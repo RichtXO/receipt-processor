@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"math"
 	"net/http"
+	"receipt-processor/internal/model"
 	"strconv"
 	"strings"
 	"time"
@@ -15,7 +16,7 @@ import (
 var inMem = make(map[string]int)
 
 func processReceipts(w http.ResponseWriter, r *http.Request) {
-	var receipt Receipt
+	var receipt model.Receipt
 
 	if err := json.NewDecoder(r.Body).Decode(&receipt); err != nil {
 		InternalServerErrorHandler(w, r)
@@ -25,12 +26,12 @@ func processReceipts(w http.ResponseWriter, r *http.Request) {
 	// Generate a random string and insert into hashmap with totalPoints
 	id := uuid.New().String()
 	inMem[id] = totalPoints(receipt)
-	output, _ := json.Marshal(ProcessReceiptResponse{id})
+	output, _ := json.Marshal(model.ProcessReceiptResponse{Id: id})
 
 	OutputHandler(w, r, output)
 }
 
-func totalPoints(receipt Receipt) int {
+func totalPoints(receipt model.Receipt) int {
 	var total = 0
 
 	// One point for every alphanumeric character in the retailer name.
@@ -85,7 +86,7 @@ func getPoints(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output, _ := json.Marshal(GetPointsResponse{points})
+	output, _ := json.Marshal(model.GetPointsResponse{Points: points})
 	OutputHandler(w, r, output)
 }
 

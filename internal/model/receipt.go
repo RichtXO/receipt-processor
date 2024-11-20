@@ -1,4 +1,4 @@
-package main
+package model
 
 // Receipt represents Receipt Structure
 type Receipt struct {
