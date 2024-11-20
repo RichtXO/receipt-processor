@@ -54,6 +54,7 @@ func processReceipt(w http.ResponseWriter, r *http.Request) {
 
 	// Writing output for client
 	output, err := json.Marshal(response)
+	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(output)
 }
 
@@ -64,6 +65,7 @@ func getPoints(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("No receipt found for ID provided!"))
 	}
 
+	// Converting string id to UUID object
 	id := mux.Vars(r)["id"]
 	uuidParsed, err := uuid.Parse(id)
 	if err != nil {
@@ -71,6 +73,7 @@ func getPoints(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Seeing if desired receipt is in memory
 	found, exists := MEMORY.Load(uuidParsed)
 	if !exists {
 		invalid()
@@ -83,11 +86,13 @@ func getPoints(w http.ResponseWriter, r *http.Request) {
 		found.(int),
 	}
 
+	// Writing output for client
 	output, err := json.Marshal(response)
 	if err != nil {
 		invalid()
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(output)
 }
 
